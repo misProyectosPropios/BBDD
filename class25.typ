@@ -32,7 +32,7 @@ of a key”_.
 
 == Clave candidata
 
-Es una superclave minimal
+Es una superclave minimal.
 
 == Clave Primaria
 
