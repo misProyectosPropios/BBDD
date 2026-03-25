@@ -1,5 +1,8 @@
 name: Build Typst document
-on: [push, pull_request]
+on: 
+  push:
+    paths-ignore:
+      - 'main.pdf'
 
 jobs:
   build_typst_documents:
@@ -18,3 +21,10 @@ jobs:
         with:
           name: typst-output
           path: main.pdf
+      - name: Commit PDF to repo
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add main.pdf
+          git commit -m "Add generated PDF" || echo "No changes"
+          git push
