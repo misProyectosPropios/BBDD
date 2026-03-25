@@ -16,7 +16,7 @@ It's a generalization of the  idea of a key for a relation
 Más formalmente:
 Una dependencia funcional en una relacion $R$ es una proposición de la forma
 
-"Si dos tuplas $R$ son iguales atributo a atributo (tienen los mismos valores en cada componente para cada atributo $A_1, A_2, dots.h, A_m$, entonces deben de _agree_ en otra lista de atributo $B_1, B_2, dots.h, B_m$"
+"Si dos tuplas $R$ son iguales atributo a atributo (tienen los mismos valores en cada componente para cada atributo #ListAr, entonces deben de _agree_ en otra lista de atributo $B_1, B_2, dots.h, B_m$"
 
 Debemos ver que con los atributos podemos obtener uno y solo uno de cada una de todas las instancia si seguimos con los mismos atributos para obtener tal.
 
