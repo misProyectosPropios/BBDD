@@ -4,6 +4,9 @@ on:
     paths-ignore:
       - 'main.pdf'
 
+permissions:
+  contents: write
+  
 jobs:
   build_typst_documents:
     runs-on: ubuntu-latest
@@ -21,10 +24,12 @@ jobs:
         with:
           name: typst-output
           path: main.pdf
+      - name: Test auth
+        run: git ls-remote https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
       - name: Commit PDF to repo
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git add main.pdf
           git commit -m "Add generated PDF" || echo "No changes"
-          git push
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
