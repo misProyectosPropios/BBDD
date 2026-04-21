@@ -151,4 +151,19 @@ And summarizing the rules before: transactions materal must be written to disk i
 The essential pol￾icy for undo logging is that we don't write the \<COMMIT T\> record until 
 the OUTPUT actions for T are completed.
 
-If there's start and not commit log. Transaction must be undone. We don't know when or what was stored. 
+Two cases: 
++ Transaction with commit record seen. Do nothing. Must not be undone 
++ T incomplete transaction or aborted transaction. Recovery manager must change the value of X in database to V.
+
+Recovering Crashes are idempotent.
+
+=== Checkpointing
+
+Problem: we do not keep ALL history logs, only the last ones. But since when? Checkpointing
+
+- Stop accepting new transactions.
+- Wait until all currently active transactions commit or abort and have 
+written a COMMIT or ABORT record on the log.
+- Flush the log to disk.
+- Write a log record <CKPT>, and flush the log again.
+- Resume accepting transactions.
