@@ -10,3 +10,13 @@ Otro texto \
 #macros.line
 #include "class1-4.typ"
 
+#pagebreak()
+#text(size: 20pt)[Clase 15/04/2026]
+#macros.line
+#include "class15-4.typ"
+
+#pagebreak()
+#text(size: 20pt)[Clase 22/04/2026]
+#macros.line
+#include "class22-4.typ"
+

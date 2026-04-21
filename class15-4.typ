@@ -128,3 +128,27 @@ ACID:
 End of Chapter 1
 
 = Concurrency Control (Chapter 18)
+
+Must preserve consitency. Timing of individual steps must be regulated: _*scheduler*_. Process of assuring transacitons preserve consistency when executed simultaneously: _*concurrency-control*_
+
+#image("assets/image.png")
+
+In most cases, the scheduler will execute write and reads directly. But, some situations: delay request or even abort the request.
+
+To assure transactions preserve correctness of the database state: _*serializability*_ and stronger: _*conflict-serializability *_.
+
+locking, timestamping, and validation
+
+== Serial and Serializable Schedules
+
+ “correctness principle”: every transaction, if executed in isolation (without any other transactions running concurrently), will transform any consistent state to another consistent state
+
+ === Schedules
+
+  It's is a sequence of the important actions taken by one or more transactions. Place: main memory, not disk.
+
+  Database element read by multiple queris
+
+  #image("assets/image-1.png")
+
+  
