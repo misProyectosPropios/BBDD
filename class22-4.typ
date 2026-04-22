@@ -167,3 +167,92 @@ written a COMMIT or ABORT record on the log.
 - Flush the log to disk.
 - Write a log record <CKPT>, and flush the log again.
 - Resume accepting transactions.
+
+=== Nonquiescent Checkpointing
+
+ allows new transactions to enter the 
+system during the checkpoint
+
+Steps:
+
++ Write log record \<Start CKPT (T1, ...) Tk\> and flush log 
++ Wait unitl all of T1, ... Tk commit or abort.
+When all of T1, ..., Tk have completed, write \<END CKPT\> and flush log
+
+== Redo Logging 
+
+Redo vs undo logging
++ While undo logging cancels the effect of incomplete transactions and ig￾nores committed ones during recovery, redo logging ignores incomplete  transactions and repeats the changes made by committed transactions
++ While undo logging requires us to write changed database elements to  disk before the COMMIT log record reaches disk, redo logging requires that  the COMMIT record appear on disk before any changed values reach disk
++  old values of changed database elements are exactly what we  need to recover when the undo rules U\ and U2 are followed, to recover  using redo logging, we need the new values instead.
+
+Write ahead logging rule 
+
+Order:
++ The log records indicating changed database elements.
++ The COMMIT log record.
++ The changed database elements themselves
+
+*Order of Redo matters* (from eariliest to latest)
+
+
+
+Recover using redo 
+
++ Identify committed transactions 
++ Scan log forward from beginning
+  + For each log record 
+    + If T is not commited transaction: nothing 
+    + If T is commited transaction, write value v for database element X.
+== Undo / redo loggin 
+
+=== Rules 
+
+update log record that we write when a database element changes value has four components. Record < T ,X ,v,w > means that transaction T changed the value of database element X; its former value was v, and its new value is w
+
+- before modifying database element. Update record < T, X, v, W >
+- < COMMIT T> log  record can precede or follow any of the changes to the database elements on 
+disk.
+
+=== Recovery 
+
++ Redo all the committed transactions in the order earliest-first, and
++ Undo all the incomplete transactions in the order latest-first.
+
+=== Checkpointing
+
++ Write a < START CKPT (T1, .. . , Tk)> record to the log, where T1,... , Tk are all the active transactions, and flush the log.
++ Write to disk all the buffers that are dirty; i.e., they contain one or more 
+changed database elements. Unlike redo logging, we flush all dirty buffers, not just those written by committed transactions.
++  Write an < END CKPT > record to the log, and flush the log
+
+== Protecting Against M edia Failures
+
+=== The archive 
+
+Archiving: copy of database separate from database itself. 
+
+TO mantain it the most same as the original, we could use logs and send them when created 
+
++ Full dump: entire database copied
++ Incremental dump: only those database elmeent changed, after _full dump_
+
+ === Nonquiescent Archiving
+
+ nonquiescent dump copies the database elements in some fixed order, 
+possibly while those elements are being changed by executing transactions.
+
+
++ Write a log record < START DUMP>
++ Perform a checkpoint appropriate for whichever logging method is being used.
++ Perform a full or incremental dump of the data disk(s), as desired, making sure that the copy of the data has reached the secure, remote site.
++ Make sure that enough of the log has been copied to the secure, remote site that at least the prefix of the log up to and including the checkpoint in item (2) will survive a media failure of the database.
++ Write a log record < END DUMP>.
+
+=== Recovery Using an Archive and Log
+
++ Restore the database from the archive.
+  + Find the most recent full dump and reconstruct the database from it (i.e., copy the archive into the database).
+  + If there are later incremental dumps, modify the database according to each, earliest first.
++ Modify the database using the surviving log. Use the method of recovery appropriate to the log method being used.
+
