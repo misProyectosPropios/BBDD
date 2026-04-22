@@ -256,3 +256,36 @@ possibly while those elements are being changed by executing transactions.
   + If there are later incremental dumps, modify the database according to each, earliest first.
 + Modify the database using the surviving log. Use the method of recovery appropriate to the log method being used.
 
+= Concurrency control
+
+Transaction manager and scheduler 
+Scheduler: regulate of timing of indiviaul steps of different transactions. 
+
+serializability is stronger: Conflict-serializability (used)
+
+== Serial and serializable schedules 
+=== Schedules 
+
+
+schedule is a sequence of the important actions taken by one or more trans￾actions
+
+=== Serial Schedules 
+
+Schedule serial if its actions consist of all the actions of one transaction, then all the actions of another transaction, and so on. No mixing of the actions is allowed.
+
+schedule S is serializable if there is a serial 
+schedule S' such that for every initial database state, the effects of S and S'
+are the same
+
+=== The Effect of Transaction Semantics
+
+Any database element A that a transaction T writes is given a value that depends on the database state in such a way that no arithmetic coincidences occur
+
+=== Notation for Transactions and Schedules
+
+- Actions are:
+  - R_T(X): reads database element X 
+  - W_T(X): writes database element X
+- Transaction T_i sequence of actions with subscript i
+- Schedule S of set of transaction T is a sequence of actions in which for each transaction Ti in T , the actions of Ti appear in S in the same order that they appear in the definition of Tj itself.
+
