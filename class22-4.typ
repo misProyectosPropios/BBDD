@@ -289,3 +289,114 @@ Any database element A that a transaction T writes is given a value that depends
 - Transaction T_i sequence of actions with subscript i
 - Schedule S of set of transaction T is a sequence of actions in which for each transaction Ti in T , the actions of Ti appear in S in the same order that they appear in the definition of Tj itself.
 
+== Conflic serializability
+
+It's based on the idea of a conflict: a pair of consecutive actions in a schedule such that, if their order is interchanged, then the behavior of at least one of the transactions involved can change.
+
+=== Conflicts 
+
+Any two actions of different transactions may 
+be swapped unless:
++ They involve the same database element, and
++  At least one is a write
+
+*Conflict-equivalent* if they can be turned one 
+into the other by a sequence of nonconflicting swaps of adjacent actions. 
+
+=== Precedence Graphs and a Test for Conflict-Serializability
+
+T1 takes precedence over T2 if there are actions such that: 
+
++ Ai is ahead of A2 in S,
++ Both A \ and A2 involve the same database element, and
++ At least one of A\ and A2 is a write action
+
+Use this precedence as a graph. 
+Nodes: transactions of schedule S 
+
+
+==== Not necessary
+
+Case: Wi(Y); wi(X); w2(Y); w2(X); w^X);
+And this schedule: wi(Y); w2 (Y); w2 (X); Wi(X); w3 (X);
+
+We construct precedence graph and ask is there are any cycles. 
++ Acyclic: S is conflict serializable 
++ Cyclic: not 
+
+
+== Enforcing Serializability by Locks
+
+Scheudler: uses locks to prevent unserializable behavior. 
+
+=== Locks
+Transactions must request and release locks
+
+Notation:
++ u_l(X): unlock 
++ l_u(X): lock
+
+Use of locks proper
+- Consistency of Transactions:
+  + ransaction can only read or write an element if it previously was granted a lock on that element and hasn't yet released the lock.
+  + transaction locks an element, it must later unlock that element
++ Legality of schedules: Locks must have their intended meaning: no two transactions may have locked the same element without one having first released the lock
+
+=== The Locking Scheduler
+
+Scheduler job: grant requests if and only if the 
+request will result in a legal schedule
+
+Scheduler only modifies this relation Locks (element, transaction),
+
+=== Two-Phase Locking (2PL)
+
+Guarantee that a legal schedule of consistent transactions is conflict￾serializable
+
++ In every transaction, all lock actions precede all unlock actions.
+
+Locks are obtained and seconds pahse: locks are relinquised. 
+
+== Locking System s W ith Several Lock M odes
+
+=== Shared and Exclusive Locks
+
++ sl_i(X) transaction T_i request a shared lock on database element X 
++ xl_i(X) for T_i request an exclusive lock on X
+
+Requiriments 
++ Consistency of transactions: ransaction may not write without holding an exclusive lock, and you may not read without holding some lock. 
+  + A read action ri(X) must be preceded by sli(X) or xk(X), with no intervening Ui(X).
+  + A write action Wi(X) must be preceded by xli(X), with no interven￾ing Ui{X).
++ Two phase locking of transactions: Locking must precede unlocking
++ Legality of schedules:  element may either be locked exclusively by one transaction or by several in shared mode, but not both
+  + xl_i(X): appears in schedule: cannot be following xl_j or sl_j for some j other than i wihtout an u_i(X)
+  + sl_i(X) appears in schedule then there cannot be following xl_j(X) for j  $!=$ i without intervening u_i(X)
+
+=== Compatibility Matrices
+A convenient way to describe lock-management policies. It has a row and column for each lock mode. The rows correspond to a lock that is already held on an element X by another transaction, and the columns correspond to the mode of a lock on X that is requested.
+
+=== Upgrading Locks
+
+Problems with multiple shared locks, causing a deadlock.
+
+=== Update Locks
+
+Fix problem with Update lock.
+ update lock uli(X) gives transaction T j only the privi￾lege to read X , not to write X
+
+Only update lock can be updated to write lock later. 
+Read lock doesn't. 
+
+Can grant update lock on X when there are update locks. Prevents additionals locks of any kind when there's an update lock on X. 
+
+=== Increment locks 
+
+Operate on database only by incrementing or decrementing stored values. Tehy commute with each other. (a + b) = b + a
+
+== Architecture Scheduler 
+Principles 
++ Transactions do not request locks or cannot be relied upon to do so 
++ Transactions do not release locks 
+
+Mantains a lock table. 
