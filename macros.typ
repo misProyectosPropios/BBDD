@@ -10,3 +10,4 @@
 #let arrow = $->$
 #let natJoin = $#sym.join$
 #let empty = $emptyset $
+#let todo = text(fill: red)[TODO]
