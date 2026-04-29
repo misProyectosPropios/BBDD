@@ -337,3 +337,264 @@ Induction: No relation fits in main memory. Hash each relation into M-1 buckets,
 #todo
 
 = Query compiler
+
++ Query, parsed
++ Parse tree into expression tree of relational algebra. It's logical query plan  
++ Logical qiery turned into physiccal query plan. 
+
+== Parsing and preprocessing 
+
+=== Sintax analysis and parse trees 
+
+ATOMS: SELECT, atrtibutes or relations, constants, parentheses, operators and other schema elements.
++ Syntactic categories: names for families of query subparts.  < query >, < condition >
+
+Node is atom. Has no children. However, node is syntacitc cateogry, then its children are described by one of the rule. 
+
+
+=== A Grammar for a Simple Subset of SQL
+
+==== Queries
+
+< Query > ::= SELECT < SelList > FROM < FromList > WHERE < Condition >
+< SelList > ::= < Attribute > , < SelList >
+< SelList > ::= < Attribute>
+
+< FromList > ::= < Attribute > , < FromList >
+< FromList > ::= < FromList >
+
+< Condition > ::= < Condition > AND < Condition > 
+< Condition > ::= < Attribute > IN ( < Query > ) 
+< Condition > ::= < Attribute> = < Attribute> 
+< Condition > ::= < Attribute> LIKE < Pattern >
+
+=== Preprocessor
+
+Several important functions
++ Check relation uses: every relation in a FROM cluase
++ Check and resolve attribute uses: every attribute that is mentioned in SELECT, WHERE clause must be an attribute of some relation in current scope. 
++ Check types: all attributes must be of type appropriate to their uses. 
+
+=== Preprocessing queries involving views 
+
+Preprocessor needs to replace operang by piece of parse tree  that represents how the view is constructed 
+from base tables.
+
+we can push selections and projections down the tree, and combine them in many cases
+
+== Algebraic Laws for Improving Query Plans
+
+=== Commutative and Associative Laws
+
++ $ R times S = S times R; (R times S) times T = R times (S times T)$
++ $R natJoin S = S natJoin R; (R natJoin S) natJoin T = R natJoin (S natJoin T)$
++ $R union S = S union R; (R union S) union T = R union (S union T) $
++ $R inter S = S inter R; (R inter S) inter T = R inter (S inter T)$
++ $R natJoin_C S = S natJoin_C R$ 
+
+It's nos associative: $R natJoin_(R.b > S.b) S) natJoin_(a < d) T$
+
+For bags, the laws for sets can differ
+
+=== Laws involving selection 
+
++ $sig_(C_1) AND_C_2 (R) = sig_C_1(sig_C_2(R))$
++ $sig_(C_1) OR_C_2 (R) = (sig_C_1) union (sig_C_2(R))$ only if it's a set 
+
++ For a union, the selection must be pushed to both arguments
++ For a difference, the selection must be pushed to the first argument and optionally may be pushed to the second
++ For the other operators it is only required that the selection be pushed to one argument. For joins and products, it may not make sense to push the selection to both arguments, since an argument may or may not have the attributes that the selection requires.
+
++ $sig_C (R times S) = sig_C(R) times S$ 
++ $sig_C (R natJoin S) = sig_C(R) natJoin S$
++ $sig_C (R natJoin_D S) = sig_C(R) natJoin_D S$
++ $sig_C (R inter S) = sig_C(R) inter S$
+
+=== Pushing Selections
+
+Queries involve virtual views: necessary to move selection as far up the tree as it can go and then push selections down all possible branches
+
+=== Trivial Laws 
++ Any selection on an empty relation is empty
++ C is an always true condition, then $sigma_C(R) = R$
++ R is empty, then $R union S = S$
+
+=== Laws involving projections 
+
+Principle: We may introduce a projection anywhere in an expression tree, as long as it eliminates only attributes that are neither used by an operator above nor are in the result of the entire expression.
+
+
++ $pi_L (R natJoin S) = pi_L(pi_M (R) natJoin pi_N (S))$
++ $pi_L (R natJoin_C S) = pi_L(pi_M (R) natJoin_C pi_N (S))$
++ $pi_L (R times S) = pi_L(pi_M (R) times pi_N (S))$
+
+=== Laws About Joins and Products
+
++ $R natJoin_C S = sig_C (R times S)$
++ $R natJoin S = pi_L (sig_C (R times S))$: C condition that equates each pair of attributes from R and S with same name and L is list that includes one attribute from each equated pair and all other attributes of R and S 
+
+From right to left. Much faster
+
+=== Laws Involving Duplicate Elimination
+
++ $delta(R) = R $ if $R$ has no duplicates 
++ $delta(R times S) = delta(R) times delta(S)$
++ $delta(R natJoin S) = delta(R) natJoin delta(S)$
++ $delta(R natJoin_C S) = delta(R) natJoin_C delta(S)$
++ $delta(sig_C (R)) = sig_C (delta (R))$
+
+=== Laws Involving Grouping and Aggregation
+
++ $delta(gamma_L(R) = gamma_L (pi_M (R)))$ if M is a list containing at least all those attributes of R mentioned 
+
++ $gamma_L(R) = gamma_L(delta(R))$
+
+
+== From Parse Trees to Logical Query Plans
+
+Query with condiiton with no subqueries. Replace entire construct by relaitonal algebra expression 
+
+=== Removing Subqueries From Conditions
+
+< Condition > that has a subquery. Intermediate form of operator. 
+
+Operator: two argument selection 
+
+Node: left child that represents the relation R and right child expression 
+
+Suppose: Two argument selection
++ Replace < condition > by the tree that is the expression for S.
++ Replace the two argument selection by a one-argument selection $sig_C$ where C is condition that equates each component of the tuple t to the corresponding attribute of the relation S 
++ Give $sig_C$ argument that is the product of R and S
+
+===  Improving the Logical Query Plan
+
++ Selections can be pushed down the expression tree as far as they can go. If a selection condition is the AND of several conditions, then we can split the condition and push each piece down the tree separately
++ Projections down the tree.
++ Duplicate eliminations be removed or moved to more convenient position in tree 
++ Selections be combined with product below to turn pair of operations into equijoin.
+
+=== Grouping Associative/Comm utative Operators
+
++ Replace natural joins with theta joins
++ Add projections to eliminate duplicate copies 
++ Theta join conditions must be associative.
+
+== Estimating the Cost of Operations
+
+Need to see: 
++ Order and grouping for associative and Commutativ operations 
++ Algorithm for each operator
++ Additional operators needed 
++ Arguments passed from one operator to next 
+
+=== Estimating  Size of intermediate relations
+
+We want rules so: 
++ Give accurate estimates
++ Easy to compute 
++ Logically consistent 
+
+=== estimating size of projections 
+
+It may increase or decrease the size. 
+
+=== Estimating size of selections 
+
+Reduce number of tuples, size of tuples remain the same.
+
+=== Estimating size of join 
+
+#todo
+
+=== Natural Joins W ith Multiple Join Attributes
+
+#todo 
+
+=== Joins o f M any R elations
+
+#todo
+
+=== Estimating size for other operations 
+
+#todo
+
+== Introduction to Cost-Based plan selection
+
+#todo
+
+=== Obtaining Estimates for Size Parameters
+
+#todo
+
+=== Computation of Statistics
+
+#todo
+
+=== Heuristics for Reducing the Cost of Logical Query Plans
+
+#todo
+
+=== Approaches to Enumerating Physical Plans
+
+#todo
+
+== Choosing an Order for Joins
+
+#todo
+
+=== Significance of Left and Right Join Arguments
+
+#todo
+
+=== Join trees 
+
+#todo
+
+=== Left-Deep Join Trees
+
+#todo
+
+=== Dynamic Programming to Select a Join Order and Grouping
+
+#todo
+
+=== Dynamic Programming W ith More Detailed Cost Functions
+
+#todo
+
+=== A Greedy Algorithm for Selecting a Join Order
+
+#todo
+
+== Completing the Physical-Query-Plan 
+
+#todo
+
+=== Choosing a Selection Method
+
+#todo
+
+=== Choosing a Join Method
+
+#todo
+
+=== Pipelining Versus Materialization
+
+#todo
+
+=== Pipelining Unary operations
+
+#todo
+
+=== Pipelining Binary Operations
+
+#todo
+
+=== Notation for Physical Query Plans
+
+#todo
+
+=== Ordering of Physical Operations
+
+#todo
